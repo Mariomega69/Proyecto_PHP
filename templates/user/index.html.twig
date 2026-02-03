@@ -4,59 +4,33 @@
 
 {% block body %}
     <style>
-        body {
-            background-color: #1a1d21; /* Fondo oscuro como el de la foto */
-            color: #ffffff;
-        }
-        .dashboard-header {
-            background-color: #212529;
-            padding: 20px;
-            border-bottom: 1px solid #343a40;
-        }
-        .stat-card {
-            background-color: #2c3034;
-            border-radius: 8px;
-            padding: 25px;
-            height: 100%;
-            border-left: 5px solid #0d6efd; /* Borde azul lateral */
-        }
-        .activity-card {
-            background-color: #2c3034;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-        }
-        .btn-custom-blue {
-            background-color: #0d6efd;
-            color: white;
-            font-weight: bold;
-            padding: 12px;
-            border-radius: 5px;
-            text-align: center;
-            text-decoration: none;
-            display: block;
-            margin-bottom: 10px;
-        }
+        body { background-color: #1a1d21; color: #ffffff; }
+        .dashboard-header { background-color: #212529; padding: 20px; border-bottom: 1px solid #343a40; }
+        .stat-card { background-color: #2c3034; border-radius: 8px; padding: 25px; height: 100%; border-left: 5px solid #0d6efd; }
+        .activity-card { background-color: #2c3034; border-radius: 8px; padding: 20px; margin-bottom: 15px; border: 1px solid #3e444a; }
+        .btn-custom-blue { background-color: #0d6efd; color: white; font-weight: bold; padding: 12px; border-radius: 5px; text-align: center; text-decoration: none; display: block; margin-bottom: 10px; }
         .btn-custom-blue:hover { background-color: #0b5ed7; color: white; }
-
-        .btn-custom-dark {
-            background-color: #3e444a;
-            color: #adb5bd;
-            font-weight: bold;
-            padding: 12px;
-            border-radius: 5px;
-            text-align: center;
-            text-decoration: none;
-            display: block;
-            cursor: not-allowed;
-        }
         .text-muted-custom { color: #adb5bd; font-size: 0.9rem; }
         .stars-orange { color: #ff9800; }
+
+        /* ESTILOS TIERMAKER (Punto 29) */
+        .tier-container { background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 30px; border: 1px solid #444; }
+        .tier-row { display: flex; border-bottom: 1px solid #222; min-height: 60px; }
+        .tier-label {
+            width: 60px; min-width: 60px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; font-weight: bold; color: #000;
+        }
+        .bg-s { background-color: #ff7f7f; }
+        .bg-a { background-color: #ffbf7f; }
+        .bg-b { background-color: #ffff7f; }
+        .bg-c { background-color: #bfff7f; }
+        .tier-items { flex-grow: 1; display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; background: #1a1a1a; }
+        .tier-item-box { background: #333; padding: 4px 10px; border-radius: 3px; font-size: 0.8rem; border: 1px solid #444; }
     </style>
 
     <div class="dashboard-header mb-4">
         <div class="container d-flex justify-content-between align-items-center">
-            <h2 class="fw-bold m-0"><i class="fas fa-cog me-2"></i>¡Hola, {{ user.email }}!</h2>
+            <h2 class="fw-bold m-0"><i class="fas fa-cog me-2"></i>¡Hola, {{ user.nombre|default(user.email) }}!</h2>
             <a href="{{ path('app_logout') }}" class="btn btn-sm btn-outline-light">Cerrar Sesión</a>
         </div>
     </div>
@@ -64,67 +38,107 @@
     <div class="container">
         {% if is_granted('ROLE_ADMIN') %}
             <div class="alert alert-primary d-flex justify-content-between align-items-center mb-4">
-                <span><strong>Modo Admin activo:</strong> Puedes gestionar todo desde el panel de control.</span>
+                <span><strong>Modo Admin activo:</strong> Gestión total disponible.</span>
                 <a href="/admin" class="btn btn-dark btn-sm">Ir a EasyAdmin</a>
             </div>
         {% endif %}
 
-        <h4 class="mb-3 fw-bold text-white-50">Estadísticas Globales</h4>
         <div class="row mb-5">
             <div class="col-md-8">
+                <h4 class="mb-3 fw-bold text-white-50">Estadísticas</h4>
                 <div class="row g-3">
                     <div class="col-md-6">
                         <div class="stat-card">
-                            <h5 class="fw-bold">Total Motos: {{ stats.total_motos }}</h5>
-                            <p class="text-muted-custom mb-0">Disponibles en el catálogo</p>
-                            <hr class="text-muted">
-                            <small class="text-white-50 small">{{ stats.total_valoraciones }} Valoraciones / 1 Media</small>
+                            <h5 class="fw-bold">Motos: {{ stats.total_motos }}</h5>
+                            <small class="text-white-50">{{ stats.total_valoraciones }} Valoraciones Totales</small>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="stat-card" style="border-left-color: #6c757d;">
-                            <h5 class="fw-bold">Top Motos: {{ stats.total_valoraciones }}/5</h5>
-                            <p class="text-muted-custom mb-0">Mejores puntuaciones</p>
-                            <hr class="text-muted">
-                            <small class="text-white-50 small">Puntuaciones Recientes</small>
+                        <div class="stat-card" style="border-left-color: #ffc107;">
+                            <h5 class="fw-bold">Mis Rankings: {{ misRankings|length }}</h5>
+                            <small class="text-white-50">Formato TierMaker Activo</small>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-4">
-                <div class="d-flex flex-column h-100 justify-content-center">
-                    <a href="{{ path('app_moto') }}" class="btn btn-custom-blue">
-                        Ver Catálogo y Valorar
-                    </a>
-                    <a href="#" class="btn btn-custom-dark">
-                        MI Ranking (Próximamente)
-                    </a>
+                <h4 class="mb-3 fw-bold text-white-50">Crear TierMaker (RF8)</h4>
+                <div class="bg-dark p-3 rounded border border-secondary">
+                    <p class="small text-muted">Selecciona categoría para filtrar:</p>
+                    {% for cat in categorias %}
+                        <a href="{{ path('app_ranking_nuevo', {'id': cat.id}) }}" class="btn btn-outline-warning btn-sm w-100 mb-2 text-start">
+                            <i class="fas fa-plus-circle me-2"></i> Ranking {{ cat.nombre }}
+                        </a>
+                    {% endfor %}
                 </div>
             </div>
         </div>
 
-        <h4 class="mb-3 fw-bold text-white-50">Tus Actividades Recientes</h4>
+        {# MIS RANKINGS FORMATO TIERMAKER (PUNTO 29) #}
+        <h4 class="mb-3 fw-bold text-white-50">Mis Rankings Finales</h4>
         <div class="row">
-            <div class="col-md-8">
-                {% for val in misValoraciones %}
-                    <div class="activity-card d-flex align-items-center">
-                        <div class="me-3">
-                            <i class="fas fa-motorcycle fa-2x text-white-50"></i>
+            {% for ranking in misRankings %}
+                <div class="col-md-6">
+                    <div class="tier-container shadow">
+                        <div class="p-2 bg-dark border-bottom border-secondary d-flex justify-content-between">
+                            <span class="fw-bold text-info">{{ ranking.nombre }}</span>
+                            <small class="text-muted">{{ ranking.categoria.nombre|default('General') }}</small>
                         </div>
-                        <div class="flex-grow-1">
-                            <h6 class="m-0 fw-bold">{{ val.moto.modelo }} —
-                                <span class="stars-orange">{{ val.estrellas }}/5 Estrellas</span>
-                            </h6>
-                            <p class="text-muted-custom m-0">"{{ val.comentario }}"</p>
+
+                        {# FILA S #}
+                        <div class="tier-row">
+                            <div class="tier-label bg-s">S</div>
+                            <div class="tier-items">
+                                {% for v in ranking.valoraciones|filter(v => v.estrellas == 5) %}
+                                    <span class="tier-item-box">{{ v.moto.modelo }}</span>
+                                {% endfor %}
+                            </div>
                         </div>
-                        <div>
-                            <a href="{{ path('app_moto_detalle', {'modelo': val.moto.modelo}) }}" class="btn btn-sm btn-outline-primary">Editar</a>
+                        {# FILA A #}
+                        <div class="tier-row">
+                            <div class="tier-label bg-a">A</div>
+                            <div class="tier-items">
+                                {% for v in ranking.valoraciones|filter(v => v.estrellas == 4) %}
+                                    <span class="tier-item-box">{{ v.moto.modelo }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {# FILA B #}
+                        <div class="tier-row">
+                            <div class="tier-label bg-b">B</div>
+                            <div class="tier-items">
+                                {% for v in ranking.valoraciones|filter(v => v.estrellas == 3) %}
+                                    <span class="tier-item-box">{{ v.moto.modelo }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {# FILA C #}
+                        <div class="tier-row">
+                            <div class="tier-label bg-c">C</div>
+                            <div class="tier-items">
+                                {% for v in ranking.valoraciones|filter(v => v.estrellas <= 2) %}
+                                    <span class="tier-item-box">{{ v.moto.modelo }}</span>
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
-                {% else %}
-                    <div class="activity-card text-center p-5">
-                        <p class="text-muted-custom m-0">No hay actividades recientes. ¡Empieza a valorar!</p>
+                </div>
+            {% else %}
+                <div class="col-12"><p class="text-muted-custom">No has creado rankings aún.</p></div>
+            {% endfor %}
+        </div>
+
+        <h4 class="mb-3 fw-bold text-white-50 mt-4">Actividad Reciente</h4>
+        <div class="row">
+            <div class="col-md-12">
+                {% for val in misValoraciones %}
+                    <div class="activity-card d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="m-0 fw-bold">{{ val.moto.modelo }} — <span class="stars-orange">{{ val.estrellas }}★</span></h6>
+                            <p class="text-muted-custom m-0 small">"{{ val.comentario }}"</p>
+                        </div>
+                        <a href="{{ path('app_moto_detalle', {'modelo': val.moto.modelo}) }}" class="btn btn-sm btn-outline-primary">Ver</a>
                     </div>
                 {% endfor %}
             </div>

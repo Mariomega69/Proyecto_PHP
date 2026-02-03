@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ValoracionRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -28,6 +30,17 @@ class Valoracion
     #[ORM\ManyToOne(inversedBy: 'valoraciones')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Moto $moto = null;
+
+    /**
+     * @var Collection<int, Ranking>
+     */
+    #[ORM\ManyToMany(targetEntity: Ranking::class, mappedBy: 'valoraciones')]
+    private Collection $rankings;
+
+    public function __construct()
+    {
+        $this->rankings = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -78,6 +91,33 @@ class Valoracion
     public function setMoto(?Moto $moto): static
     {
         $this->moto = $moto;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Ranking>
+     */
+    public function getRankings(): Collection
+    {
+        return $this->rankings;
+    }
+
+    public function addRanking(Ranking $ranking): static
+    {
+        if (!$this->rankings->contains($ranking)) {
+            $this->rankings->add($ranking);
+            $ranking->addValoracione($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRanking(Ranking $ranking): static
+    {
+        if ($this->rankings->removeElement($ranking)) {
+            $ranking->removeValoracione($this);
+        }
 
         return $this;
     }
