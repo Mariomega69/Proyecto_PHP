@@ -1,0 +1,133 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mi Cuenta - Panel Personal{% endblock %}
+
+{% block body %}
+    <style>
+        body {
+            background-color: #1a1d21; /* Fondo oscuro como el de la foto */
+            color: #ffffff;
+        }
+        .dashboard-header {
+            background-color: #212529;
+            padding: 20px;
+            border-bottom: 1px solid #343a40;
+        }
+        .stat-card {
+            background-color: #2c3034;
+            border-radius: 8px;
+            padding: 25px;
+            height: 100%;
+            border-left: 5px solid #0d6efd; /* Borde azul lateral */
+        }
+        .activity-card {
+            background-color: #2c3034;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        .btn-custom-blue {
+            background-color: #0d6efd;
+            color: white;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 5px;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .btn-custom-blue:hover { background-color: #0b5ed7; color: white; }
+
+        .btn-custom-dark {
+            background-color: #3e444a;
+            color: #adb5bd;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 5px;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            cursor: not-allowed;
+        }
+        .text-muted-custom { color: #adb5bd; font-size: 0.9rem; }
+        .stars-orange { color: #ff9800; }
+    </style>
+
+    <div class="dashboard-header mb-4">
+        <div class="container d-flex justify-content-between align-items-center">
+            <h2 class="fw-bold m-0"><i class="fas fa-cog me-2"></i>¡Hola, {{ user.email }}!</h2>
+            <a href="{{ path('app_logout') }}" class="btn btn-sm btn-outline-light">Cerrar Sesión</a>
+        </div>
+    </div>
+
+    <div class="container">
+        {% if is_granted('ROLE_ADMIN') %}
+            <div class="alert alert-primary d-flex justify-content-between align-items-center mb-4">
+                <span><strong>Modo Admin activo:</strong> Puedes gestionar todo desde el panel de control.</span>
+                <a href="/admin" class="btn btn-dark btn-sm">Ir a EasyAdmin</a>
+            </div>
+        {% endif %}
+
+        <h4 class="mb-3 fw-bold text-white-50">Estadísticas Globales</h4>
+        <div class="row mb-5">
+            <div class="col-md-8">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="stat-card">
+                            <h5 class="fw-bold">Total Motos: {{ stats.total_motos }}</h5>
+                            <p class="text-muted-custom mb-0">Disponibles en el catálogo</p>
+                            <hr class="text-muted">
+                            <small class="text-white-50 small">{{ stats.total_valoraciones }} Valoraciones / 1 Media</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stat-card" style="border-left-color: #6c757d;">
+                            <h5 class="fw-bold">Top Motos: {{ stats.total_valoraciones }}/5</h5>
+                            <p class="text-muted-custom mb-0">Mejores puntuaciones</p>
+                            <hr class="text-muted">
+                            <small class="text-white-50 small">Puntuaciones Recientes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="d-flex flex-column h-100 justify-content-center">
+                    <a href="{{ path('app_moto') }}" class="btn btn-custom-blue">
+                        Ver Catálogo y Valorar
+                    </a>
+                    <a href="#" class="btn btn-custom-dark">
+                        MI Ranking (Próximamente)
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <h4 class="mb-3 fw-bold text-white-50">Tus Actividades Recientes</h4>
+        <div class="row">
+            <div class="col-md-8">
+                {% for val in misValoraciones %}
+                    <div class="activity-card d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fas fa-motorcycle fa-2x text-white-50"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="m-0 fw-bold">{{ val.moto.modelo }} —
+                                <span class="stars-orange">{{ val.estrellas }}/5 Estrellas</span>
+                            </h6>
+                            <p class="text-muted-custom m-0">"{{ val.comentario }}"</p>
+                        </div>
+                        <div>
+                            <a href="{{ path('app_moto_detalle', {'modelo': val.moto.modelo}) }}" class="btn btn-sm btn-outline-primary">Editar</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="activity-card text-center p-5">
+                        <p class="text-muted-custom m-0">No hay actividades recientes. ¡Empieza a valorar!</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Catálogo BMW{% endblock %}
+
+{% block body %}
+    <style>
+        /* Estilo para las tarjetas tipo "BMW Premium" */
+        .moto-card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: #fff;
+        }
+
+        .moto-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+        }
+
+        .img-container {
+            height: 200px;
+            overflow: hidden;
+            background-color: #f8f9fa;
+        }
+
+        .img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Para que la moto se vea entera sin cortarse */
+            padding: 10px;
+        }
+
+        .btn-bmw {
+            background-color: #0066b1;
+            color: white;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-bmw:hover {
+            background-color: #004a80;
+            color: white;
+        }
+    </style>
+
+    <div class="container mt-4">
+        <div class="row mb-5 align-items-center bg-light p-4 rounded shadow-sm">
+            <div class="col-md-6">
+                <h1 class="fw-bold text-dark m-0">Catálogo BMW Motorrad</h1>
+                <p class="text-muted mb-0">Encuentra tu próximo desafío en dos ruedas.</p>
+            </div>
+            <div class="col-md-6 mt-3 mt-md-0">
+                <form action="{{ path('app_moto') }}" method="get" class="d-flex">
+                    <input type="text" name="q" class="form-control me-2" placeholder="Ej: R 1250 GS" value="{{ app.request.query.get('q') }}">
+                    <button type="submit" class="btn btn-primary px-4">Buscar</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for moto in motos %}
+                <div class="col">
+                    <div class="card h-100 moto-card shadow-sm">
+                        <div class="img-container">
+                            <img src="{{ moto.urlImagen }}" class="card-img-top" alt="{{ moto.modelo }}">
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <div class="mb-2">
+                                <span class="badge bg-primary mb-1">BMW Official</span>
+                                <h5 class="card-title fw-bold text-dark">{{ moto.modelo }}</h5>
+                            </div>
+                            <p class="card-text text-muted small flex-grow-1">
+                                Explora las valoraciones de los usuarios y comparte tu opinión sobre esta {{ moto.modelo }}.
+                            </p>
+                            <div class="d-grid mt-3">
+                                <a href="{{ path('app_moto_detalle', {'modelo': moto.modelo}) }}" class="btn btn-bmw">
+                                    <i class="fas fa-eye me-2"></i>Ver Detalles
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-motorcycle fa-3x text-muted mb-3"></i>
+                    <p class="h4 text-muted">No hemos encontrado ninguna moto con ese nombre.</p>
+                    <a href="{{ path('app_moto') }}" class="btn btn-link">Ver todo el catálogo</a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
