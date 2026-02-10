@@ -15,11 +15,13 @@ class ValoracionType extends AbstractType
     {
         $builder
             ->add('estrellas', IntegerType::class, [
-                'attr' => ['min' => 1, 'max' => 5],
+                'attr' => ['min' => 1, 'max' => 5, 'class' => 'form-control'],
                 'label' => 'Puntuación (1-5)'
             ])
             ->add('comentario', TextareaType::class, [
-                'label' => 'Tu opinión'
+                'label' => 'Tu opinión (opcional)',
+                'required' => false,
+                'attr' => ['class' => 'form-control', 'rows' => 3, 'placeholder' => 'Cuéntanos tu experiencia...']
             ])
         ;
     }

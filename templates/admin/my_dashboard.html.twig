@@ -4,33 +4,48 @@
 
 {% block main %}
     <div class="row">
-        <div class="col-md-4">
-            <div class="card bg-primary text-white mb-4">
-                <div class="card-body">
-                    <h1>{{ totalMotos }}</h1>
-                    <p>Motos en Catálogo</p>
+        {# Tarjeta de Motos #}
+        <div class="col-md-3">
+            <div class="card bg-primary text-white mb-4 shadow-sm">
+                <div class="card-body text-center">
+                    <h1 class="display-4 fw-bold">{{ totalMotos }}</h1>
+                    <p class="mb-0"><i class="fas fa-motorcycle me-1"></i> Motos en Catálogo</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card bg-success text-white mb-4">
-                <div class="card-body">
-                    <h1>{{ totalValoraciones }}</h1>
-                    <p>Valoraciones Totales</p>
+
+        {# Tarjeta de Valoraciones #}
+        <div class="col-md-3">
+            <div class="card bg-success text-white mb-4 shadow-sm">
+                <div class="card-body text-center">
+                    <h1 class="display-4 fw-bold">{{ totalValoraciones }}</h1>
+                    <p class="mb-0"><i class="fas fa-star me-1"></i> Valoraciones Totales</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card bg-info text-white mb-4">
-                <div class="card-body">
-                    <h1>{{ totalCategorias }}</h1>
-                    <p>Categorías Creadas</p>
+
+        {# Tarjeta de Categorías #}
+        <div class="col-md-3">
+            <div class="card bg-info text-white mb-4 shadow-sm">
+                <div class="card-body text-center">
+                    <h1 class="display-4 fw-bold">{{ totalCategorias }}</h1>
+                    <p class="mb-0"><i class="fas fa-tags me-1"></i> Categorías Creadas</p>
+                </div>
+            </div>
+        </div>
+
+        {# NUEVA: Tarjeta de Usuarios #}
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark mb-4 shadow-sm">
+                <div class="card-body text-center">
+                    <h1 class="display-4 fw-bold">{{ totalUsuarios }}</h1>
+                    <p class="mb-0"><i class="fas fa-users me-1"></i> Usuarios Registrados</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="alert alert-info">
-        <i class="fa fa-info-circle"></i> Usa el menú de la izquierda para gestionar el contenido.
+    <div class="alert alert-light border shadow-sm">
+        <i class="fa fa-info-circle text-info"></i> Bienvenido al panel de administración. Desde aquí puedes supervisar el estado global de la plataforma <strong>BMW Motorrad</strong>.
     </div>
 {% endblock %}

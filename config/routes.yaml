@@ -11,10 +11,3 @@ controllers:
     resource: ../src/Controller/
     type: attribute
 
-app_ranking:
-    resource: ../src/Controller/RankingController.php
-    type: attribute
-
-app_ranking_nuevo:
-    path: /ranking/nuevo
-    controller: App\Controller\RankingController::nuevo

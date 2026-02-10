@@ -3,115 +3,50 @@
 {% block title %}Detalle - {{ moto.modelo }}{% endblock %}
 
 {% block body %}
-    <style>
-        .img-detalle-container {
-            background-color: #f8f9fa;
-            min-height: 450px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 15px 0 0 15px;
-        }
-        .badge-rating {
-            background-color: #ffc107;
-            color: #000;
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-        .opinion-card {
-            border-left: 4px solid #0066b1;
-            background-color: #fff;
-            margin-bottom: 10px;
-            transition: 0.3s;
-        }
-        .opinion-card:hover {
-            background-color: #f1f7fd;
-        }
-        .form-valoracion {
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-    </style>
-
     <div class="container py-5">
-        <a href="{{ path('app_moto') }}" class="btn btn-link text-decoration-none text-muted mb-4">
-            <i class="fas fa-arrow-left"></i> Volver al catálogo
-        </a>
-
         <div class="card shadow-lg border-0 overflow-hidden" style="border-radius: 20px;">
             <div class="row g-0">
-                <div class="col-lg-6 img-detalle-container">
-                    <img src="{{ moto.urlImagen|replace({' ': '%20'}) }}"
-                         class="img-fluid p-4"
-                         alt="{{ moto.modelo }}"
-                         style="max-height: 450px; object-fit: contain;"
-                         onerror="this.src='https://placehold.co/600x400?text=BMW+Motorrad'">
+                <div class="col-lg-6 bg-light d-flex align-items-center justify-content-center p-4">
+                    <img src="{{ moto.urlImagen }}" class="img-fluid" style="max-height: 400px; object-fit: contain;">
                 </div>
+                <div class="col-lg-6 p-5">
+                    <h1 class="display-5 fw-bold">{{ moto.modelo }}</h1>
+                    <hr>
 
-                <div class="col-lg-6">
-                    <div class="card-body p-5">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <h6 class="text-primary fw-bold text-uppercase mb-1">{{ moto.marca }}</h6>
-                                <h1 class="display-5 fw-bold text-dark">{{ moto.modelo }}</h1>
-                            </div>
-                            <span class="badge bg-light text-dark border p-2">
-                            <i class="fas fa-database me-1 text-primary"></i> Local
-                        </span>
-                        </div>
-
-                        <hr class="my-4">
-
-                        <h4 class="fw-bold mb-4"><i class="fas fa-comments me-2 text-primary"></i>Experiencias</h4>
-
-                        <div class="valoraciones-scroll mb-4" style="max-height: 300px; overflow-y: auto; padding-right: 10px;">
-                            {% if valoraciones is empty %}
-                                <div class="text-center py-4 bg-light rounded">
-                                    <i class="fas fa-comment-slash fa-2x text-muted mb-2"></i>
-                                    <p class="text-muted mb-0">Esta moto aún no tiene opiniones. ¡Sé el primero!</p>
-                                </div>
-                            {% else %}
-                                {% for v in valoraciones %}
-                                    <div class="card opinion-card shadow-sm">
-                                        <div class="card-body p-3">
-                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="fw-bold small text-muted">
-                                                <i class="fas fa-user-circle me-1"></i> Usuario Anónimo
-                                            </span>
-                                                <span class="text-warning">
-                                                {% for i in 1..5 %}
-                                                    <i class="{{ i <= v.estrellas ? 'fas' : 'far' }} fa-star"></i>
-                                                {% endfor %}
-                                            </span>
-                                            </div>
-                                            <p class="mb-0 text-dark small">{{ v.comentario }}</p>
-                                        </div>
+                    <h4 class="fw-bold mb-3">Opiniones de usuarios</h4>
+                    <div class="mb-4" style="max-height: 250px; overflow-y: auto;">
+                        {% for v in valoraciones %}
+                            <div class="card mb-2 border-start border-primary border-4 shadow-sm">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="fw-bold">{{ v.usuario.nombre|default('Usuario') }}</small>
+                                        <span class="text-warning">
+                                        {% for i in 1..5 %}<i class="{{ i <= v.estrellas ? 'fas' : 'far' }} fa-star"></i>{% endfor %}
+                                    </span>
                                     </div>
-                                {% endfor %}
-                            {% endif %}
-                        </div>
-
-                        <div class="form-valoracion p-4 border border-light bg-light">
-                            <h5 class="fw-bold mb-3">Deja tu valoración</h5>
-
-                            {{ form_start(formulario) }}
-                            <div class="mb-3">
-                                {# Renderizamos los campos individualmente para que Bootstrap los ponga bonitos #}
-                                {{ form_widget(formulario) }}
+                                    <p class="small mb-0">{{ v.comentario ?: 'Sin comentario.' }}</p>
+                                </div>
                             </div>
-                            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow">
-                                <i class="fas fa-paper-plane me-2"></i>Publicar Opinión
+                        {% else %}
+                            <p class="text-muted">Nadie ha opinado aún.</p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="p-4 rounded bg-dark text-white">
+                        <h5 class="mb-3">{{ haValorado ? 'Actualizar mi opinión' : 'Dejar valoración' }}</h5>
+                        {% if app.user %}
+                            {{ form_start(formulario) }}
+                            {{ form_widget(formulario) }}
+                            <button type="submit" class="btn {{ haValorado ? 'btn-info' : 'btn-primary' }} w-100 mt-3 fw-bold">
+                                {{ haValorado ? 'GUARDAR CAMBIOS' : 'PUBLICAR' }}
                             </button>
                             {{ form_end(formulario) }}
-
-                            {% if not app.user %}
-                                <p class="text-center mt-3 small text-danger fw-bold">
-                                    <i class="fas fa-exclamation-circle"></i> Debes estar logueado para valorar.
-                                </p>
-                            {% endif %}
-                        </div>
-
+                        {% else %}
+                            <div class="text-center p-3 border border-secondary rounded">
+                                <p class="mb-2">Inicia sesión para valorar esta moto</p>
+                                <a href="{{ path('app_login') }}" class="btn btn-sm btn-outline-light">Ir al Login</a>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

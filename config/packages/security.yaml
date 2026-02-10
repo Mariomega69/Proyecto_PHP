@@ -19,8 +19,8 @@ security:
 
             logout:
                 path: app_logout
-                # Tras cerrar sesión, lo mejor es volver al listado de motos
-                target: app_moto
+                # Si quieres que al salir vuelva a pedir login, puedes ponerlo aquí
+                target: app_login
 
             remember_me:
                 secret: '%kernel.secret%'
@@ -28,9 +28,12 @@ security:
                 path: /
 
     access_control:
-        # 1. Protegemos tu nueva página de usuario
-        # Solo usuarios que hayan iniciado sesión pueden ver su panel
-        - { path: ^/mi-cuenta, roles: ROLE_USER }
+        # 0. PERMITIR ACCESO PÚBLICO AL LOGIN (Vital para no bloquear la web)
+        - { path: ^/login$, roles: PUBLIC_ACCESS }
+
+        # 1. PROTECCIÓN GLOBAL: Cualquier ruta (/) requiere estar logueado
+        # Esta es la línea que hace que al abrir el enlace te pida login
+        - { path: ^/, roles: ROLE_USER }
 
         # 2. Rutas de administración
         - { path: ^/admin, roles: ROLE_ADMIN }
@@ -39,5 +42,5 @@ security:
         - { path: ^/moto/new, roles: ROLE_ADMIN }
         - { path: ^/moto/\d+/edit, roles: ROLE_ADMIN }
 
-        # 4. Aseguramos que cualquier otra ruta de perfil esté protegida
-        - { path: ^/profile, roles: IS_AUTHENTICATED_FULLY }
+        # 4. Otras páginas específicas (aunque ya están cubiertas por la regla global)
+        - { path: ^/mi-cuenta, roles: ROLE_USER }

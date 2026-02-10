@@ -15,36 +15,57 @@ class Ranking
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'rankings')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Usuario $usuario = null;
-
-    // Cambiado a nullable: true para permitir rankings personales sin categoría fija
-    #[ORM\ManyToOne(inversedBy: 'rankings')]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?Categoria $categoria = null;
-
-    // Cambiado a nullable: true para que no de error al crear rankings de usuario
-    #[ORM\Column(nullable: true)]
-    private ?int $puntuacion = null;
-
     #[ORM\Column(length: 255)]
     private ?string $nombre = null;
 
+    #[ORM\Column(type: 'datetime')]
+    private ?\DateTimeInterface $fecha = null;
+
+    #[ORM\ManyToOne(targetEntity: Usuario::class, inversedBy: 'rankings')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Usuario $usuario = null;
+
+    #[ORM\ManyToOne(targetEntity: Categoria::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Categoria $categoria = null;
+
     /**
-     * @var Collection<int, Valoracion>
+     * Relación con los items del ranking (las motos y su tier)
      */
-    #[ORM\ManyToMany(targetEntity: Valoracion::class, inversedBy: 'rankings')]
-    private Collection $valoraciones;
+    #[ORM\OneToMany(mappedBy: 'ranking', targetEntity: RankingItem::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $items;
 
     public function __construct()
     {
-        $this->valoraciones = new ArrayCollection();
+        $this->items = new ArrayCollection();
+        $this->fecha = new \DateTime();
     }
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getNombre(): ?string
+    {
+        return $this->nombre;
+    }
+
+    public function setNombre(string $nombre): static
+    {
+        $this->nombre = $nombre;
+        return $this;
+    }
+
+    public function getFecha(): ?\DateTimeInterface
+    {
+        return $this->fecha;
+    }
+
+    public function setFecha(\DateTimeInterface $fecha): static
+    {
+        $this->fecha = $fecha;
+        return $this;
     }
 
     public function getUsuario(): ?Usuario
@@ -55,7 +76,6 @@ class Ranking
     public function setUsuario(?Usuario $usuario): static
     {
         $this->usuario = $usuario;
-
         return $this;
     }
 
@@ -67,60 +87,33 @@ class Ranking
     public function setCategoria(?Categoria $categoria): static
     {
         $this->categoria = $categoria;
-
-        return $this;
-    }
-
-    public function getPuntuacion(): ?int
-    {
-        return $this->puntuacion;
-    }
-
-    public function setPuntuacion(?int $puntuacion): static
-    {
-        $this->puntuacion = $puntuacion;
-
-        return $this;
-    }
-
-    public function getNombre(): ?string
-    {
-        return $this->nombre;
-    }
-
-    public function setNombre(string $nombre): static
-    {
-        $this->nombre = $nombre;
-
         return $this;
     }
 
     /**
-     * @return Collection<int, Valoracion>
+     * @return Collection<int, RankingItem>
      */
-    public function getValoraciones(): Collection
+    public function getItems(): Collection
     {
-        return $this->valoraciones;
+        return $this->items;
     }
 
-    public function addValoracione(Valoracion $valoracione): static
+    public function addItem(RankingItem $item): static
     {
-        if (!$this->valoraciones->contains($valoracione)) {
-            $this->valoraciones->add($valoracione);
+        if (!$this->items->contains($item)) {
+            $this->items->add($item);
+            $item->setRanking($this);
         }
-
         return $this;
     }
 
-    public function removeValoracione(Valoracion $valoracione): static
+    public function removeItem(RankingItem $item): static
     {
-        $this->valoraciones->removeElement($valoracione);
-
+        if ($this->items->removeElement($item)) {
+            if ($item->getRanking() === $this) {
+                $item->setRanking(null);
+            }
+        }
         return $this;
-    }
-
-    public function __toString(): string
-    {
-        return $this->nombre ?? 'Sin nombre';
     }
 }
