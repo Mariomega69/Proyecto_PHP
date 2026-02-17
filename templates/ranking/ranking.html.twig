@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container py-5" style="background-color: #1a1d21; color: white; min-height: 100vh;">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h2 class="mb-4 fw-bold text-primary">
+                    <i class="fas fa-trophy me-2"></i>Clasificar Categoría: {{ categoria.nombre }}
+                </h2>
+
+                <div class="card bg-dark border-secondary p-4 mb-5 shadow">
+                    {{ form_start(form) }}
+
+                    <div class="mb-4">
+                        {{ form_row(form.nombre) }}
+                    </div>
+
+                    <div class="p-3 rounded border border-secondary mb-4" style="background-color: #2c3034;">
+                        <h5 class="text-info mb-4 border-bottom border-secondary pb-2">Asigna un nivel a cada moto</h5>
+
+                        {# Iteramos sobre la colección de items precargados #}
+                        {% for itemForm in form.items %}
+                            <div class="row mb-3 p-3 align-items-center rounded mx-0" style="background-color: #3e444a;">
+                                <div class="col-md-7">
+                                    <span class="fw-bold fs-5 text-white">
+                                        {# Accedemos al nombre de la moto desde los datos del formulario #}
+                                        <i class="fas fa-motorcycle me-2 text-warning"></i>
+                                        {{ itemForm.vars.data.moto.modelo }}
+                                    </span>
+                                </div>
+                                <div class="col-md-5">
+                                    {{ form_widget(itemForm.tier, {
+                                        'attr': {'class': 'form-select form-select-lg bg-primary text-white border-0'}
+                                    }) }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg w-100 fw-bold shadow">
+                        <i class="fas fa-save me-2"></i>Guardar mi Clasificación
+                    </button>
+                    {{ form_end(form) }}
+                </div>
+
+                <hr class="border-secondary">
+
+                <h4 class="mt-5 mb-3 text-white-50">Mis Rankings Guardados</h4>
+                <div class="row">
+                    {% for r in app.user.rankings %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100" style="background-color: #2c3034; border-left: 4px solid #ffc107;">
+                                <div class="card-body">
+                                    <h5 class="fw-bold text-warning mb-3">{{ r.nombre }}</h5>
+                                    <div class="list-group list-group-flush bg-transparent">
+                                        {# Importante: Ahora iteramos sobre r.items (RankingItem) #}
+                                        {% for item in r.items %}
+                                            <div class="list-group-item bg-transparent text-white border-secondary d-flex justify-content-between align-items-center px-0">
+                                                <span>{{ item.moto.modelo }}</span>
+                                                <span class="badge bg-info text-dark fw-bold">Tier {{ item.tier }}</span>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="text-muted italic">Aún no has guardado ningún ranking.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Estilos para que el selector se vea más "Tier List" */
+        .form-select { cursor: pointer; transition: transform 0.2s; }
+        .form-select:hover { transform: scale(1.02); }
+        .badge { min-width: 60px; font-size: 0.9rem; }
+    </style>
+{% endblock %}
