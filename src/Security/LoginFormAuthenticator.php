@@ -28,15 +28,18 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 
     public function authenticate(Request $request): Passport
     {
-        $email = $request->getPayload()->getString('email');
+        // Obtenemos los datos del formulario (coincidiendo con name="email" y name="password")
+        $email = $request->request->get('email', '');
+        $password = $request->request->get('password', '');
+        $csrfToken = $request->request->get('_csrf_token', '');
 
         $request->getSession()->set(SecurityRequestAttributes::LAST_USERNAME, $email);
 
         return new Passport(
             new UserBadge($email),
-            new PasswordCredentials($request->getPayload()->getString('password')),
+            new PasswordCredentials($password),
             [
-                new CsrfTokenBadge('authenticate', $request->getPayload()->getString('_csrf_token')),
+                new CsrfTokenBadge('authenticate', $csrfToken),
                 new RememberMeBadge(),
             ]
         );
@@ -44,20 +47,22 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
+        // Si el usuario intentaba entrar a una página protegida antes de loguearse, lo mandamos allí
         if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
             return new RedirectResponse($targetPath);
         }
 
-        // 1. Obtenemos el usuario y sus roles
+        // Obtenemos el usuario logueado
         $user = $token->getUser();
 
-        // 2. Si el usuario es ADMIN, lo mandamos directo al panel de EasyAdmin
-        // EasyAdmin suele registrar la ruta como 'admin' o simplemente '/admin'
+        // REDIRECCIÓN DINÁMICA:
+        // Si el usuario tiene ROLE_ADMIN, lo enviamos al panel de EasyAdmin
+        // Asegúrate de que tu DashboardController tenga la ruta con name: 'admin'
         if (in_array('ROLE_ADMIN', $user->getRoles())) {
             return new RedirectResponse($this->urlGenerator->generate('admin'));
         }
 
-        // 3. Si es un usuario normal, va a su panel personalizado
+        // Si es un usuario normal (ROLE_USER), lo enviamos a su dashboard personalizado
         return new RedirectResponse($this->urlGenerator->generate('app_user_dashboard'));
     }
 

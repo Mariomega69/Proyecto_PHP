@@ -7,6 +7,7 @@ use App\Repository\MotoRepository;
 use App\Repository\RankingRepository;
 use App\Repository\ValoracionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request; // Importante añadir esto
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -16,35 +17,49 @@ class UserController extends AbstractController
     #[Route('/mi-cuenta', name: 'app_user_dashboard')]
     #[IsGranted('ROLE_USER')]
     public function index(
+        Request $request, // Inyectamos el Request para leer el selector
         ValoracionRepository $valRepo,
         MotoRepository $motoRepo,
         CategoriaRepository $catRepo,
         RankingRepository $rankRepo
-    ): Response
-    {
+    ): Response {
         $user = $this->getUser();
-
-        // 1. Estadísticas Globales (RF9)
-        $estadisticasGlobales = [
-            'total_motos' => count($motoRepo->findAll()),
-            'total_valoraciones' => count($valRepo->findAll()),
-        ];
-
-        // 2. Valoraciones del usuario actual (RF7)
-        $misValoraciones = $valRepo->findBy(['usuario' => $user]);
-
-        // 3. Obtener todas las categorías para que el usuario elija (RF8 - Punto 27)
         $categorias = $catRepo->findAll();
 
-        // 4. Rankings ya creados por el usuario (RF8 - Punto 29)
-        $misRankings = $rankRepo->findBy(['usuario' => $user]);
+        // 1. Capturamos la categoría elegida en el selector de la comunidad
+        $idCategoriaSeleccionada = $request->query->get('id_categoria_ranking');
+        $rankingPosicionesMedia = [];
+
+        if ($idCategoriaSeleccionada) {
+            // Usamos la nueva función que calcula la media de los niveles S, A, B, C
+            $rankingPosicionesMedia = $motoRepo->findMediaPosicionesPorCategoria((int)$idCategoriaSeleccionada);
+        }
+
+        $estadisticasGlobales = [
+            'total_motos' => $motoRepo->count([]),
+            'total_valoraciones' => $valRepo->count([]),
+        ];
+
+        // Top 5 basado en estrellas (valoraciones directas)
+        $topMotos = $motoRepo->findTopVotadas(5);
+        $mediasCategorias = $motoRepo->findMediasPorCategoria();
+
+        $topsPorCategoria = [];
+        foreach ($categorias as $cat) {
+            $topsPorCategoria[$cat->getNombre()] = $motoRepo->findTopByCategoria($cat->getId(), 3);
+        }
 
         return $this->render('user/index.html.twig', [
             'user' => $user,
-            'misValoraciones' => $misValoraciones,
-            'misRankings' => $misRankings,
+            'misRankings' => $rankRepo->findBy(['usuario' => $user]),
             'categorias' => $categorias,
             'stats' => $estadisticasGlobales,
+            'topMotos' => $topMotos,
+            'mediasCategorias' => $mediasCategorias,
+            'topsPorCategoria' => $topsPorCategoria,
+            // Nuevas variables para el ranking de posiciones media
+            'rankingPosicionesMedia' => $rankingPosicionesMedia,
+            'idCatActual' => $idCategoriaSeleccionada
         ]);
     }
 }

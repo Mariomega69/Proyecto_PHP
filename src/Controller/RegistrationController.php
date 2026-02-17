@@ -16,8 +16,12 @@ use Symfony\Component\Routing\Attribute\Route;
 class RegistrationController extends AbstractController
 {
     #[Route('/register', name: 'app_register')]
-    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, Security $security, EntityManagerInterface $entityManager): Response
-    {
+    public function register(
+        Request $request,
+        UserPasswordHasherInterface $userPasswordHasher,
+        Security $security,
+        EntityManagerInterface $entityManager
+    ): Response {
         $user = new Usuario();
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
@@ -29,17 +33,29 @@ class RegistrationController extends AbstractController
             // Encriptamos la contraseña
             $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
 
+            // Por defecto, Symfony suele asignar ROLE_USER,
+            // pero nos aseguramos de que el usuario tenga roles
+            if (empty($user->getRoles())) {
+                $user->setRoles(['ROLE_USER']);
+            }
+
             $entityManager->persist($user);
             $entityManager->flush();
 
-            // --- LÓGICA DE REDIRECCIÓN SEGÚN ROL ---
-            // Si el usuario tiene el rol de ADMIN, lo mandamos al EasyAdmin
+            // 1. Autenticamos al usuario en el firewall 'main'
+            // IMPORTANTE: Se eliminan los argumentos extra que causaban el TypeError
+            $security->login($user, LoginFormAuthenticator::class, 'main');
+
+            // 2. Lógica de redirección según el Rol
+            // Si es ADMIN, lo mandamos al panel de EasyAdmin
             if (in_array('ROLE_ADMIN', $user->getRoles())) {
-                return $security->login($user, LoginFormAuthenticator::class, 'main', 'admin');
+                return $this->redirectToRoute('admin');
             }
 
-            // Para el resto (usuarios normales), van a su panel personalizado
-            return $security->login($user, LoginFormAuthenticator::class, 'main', 'app_user_dashboard');
+            // Para usuarios normales, los mandamos al catálogo de motos
+            // (Usamos 'app_moto' porque 'app_user_dashboard' podría no estar definida aún)
+            $this->addFlash('success', '¡Registro completado con éxito! Bienvenido.');
+            return $this->redirectToRoute('app_moto');
         }
 
         return $this->render('registration/register.html.twig', [

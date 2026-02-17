@@ -10,7 +10,25 @@
                     <img src="{{ moto.urlImagen }}" class="img-fluid" style="max-height: 400px; object-fit: contain;">
                 </div>
                 <div class="col-lg-6 p-5">
-                    <h1 class="display-5 fw-bold">{{ moto.modelo }}</h1>
+                    <h1 class="display-5 fw-bold mb-0">{{ moto.modelo }}</h1>
+
+                    {# BLOQUE DE PUNTUACIÓN MEDIA #}
+                    <div class="mb-3 d-flex align-items-center">
+                        {% set media = moto.getMediaEstrellas() %}
+                        <div class="text-warning me-2" style="font-size: 1.2rem;">
+                            {% for i in 1..5 %}
+                                {% if i <= media %}
+                                    <i class="fas fa-star"></i>
+                                {% elseif i - 0.5 <= media %}
+                                    <i class="fas fa-star-half-alt"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span class="badge bg-primary fs-6">{{ media }} / 5</span>
+                        <span class="ms-2 text-muted small">({{ moto.valoraciones|length }} valoraciones)</span>
+                    </div>
                     <hr>
 
                     <h4 class="fw-bold mb-3">Opiniones de usuarios</h4>
@@ -19,10 +37,10 @@
                             <div class="card mb-2 border-start border-primary border-4 shadow-sm">
                                 <div class="card-body p-3">
                                     <div class="d-flex justify-content-between">
-                                        <small class="fw-bold">{{ v.usuario.nombre|default('Usuario') }}</small>
+                                        <small class="fw-bold">{{ v.usuario.email }}</small>
                                         <span class="text-warning">
-                                        {% for i in 1..5 %}<i class="{{ i <= v.estrellas ? 'fas' : 'far' }} fa-star"></i>{% endfor %}
-                                    </span>
+                                            {% for i in 1..5 %}<i class="{{ i <= v.estrellas ? 'fas' : 'far' }} fa-star"></i>{% endfor %}
+                                        </span>
                                     </div>
                                     <p class="small mb-0">{{ v.comentario ?: 'Sin comentario.' }}</p>
                                 </div>

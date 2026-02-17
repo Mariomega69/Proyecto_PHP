@@ -1,51 +1,152 @@
 {% extends '@EasyAdmin/page/content.html.twig' %}
 
-{% block content_title %}Resumen de Estadísticas BMW{% endblock %}
+{% block content_title %}Panel de Control BMW - Estadísticas Globales{% endblock %}
 
 {% block main %}
-    <div class="row">
-        {# Tarjeta de Motos #}
+    <style>
+        .dashboard-card { border-radius: 10px; border: none; transition: transform 0.2s; }
+        .dashboard-card:hover { transform: translateY(-5px); }
+        .stat-bg-dark { background-color: #1a1d21; color: white; border: 1px solid #343a40; }
+        .list-group-item { background: transparent; color: #ddd; border-color: #343a40; }
+
+        /* Estilos Consenso Tier List */
+        .tier-list-container { border: 2px solid #0dcaf0 !important; }
+        .form-select-custom {
+            background-color: #1a1d21 !important;
+            color: #fff !important;
+            border: 1px solid #0dcaf0 !important;
+            border-radius: 8px;
+        }
+    </style>
+
+    {# Fila de Tarjetas Superiores #}
+    <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card bg-primary text-white mb-4 shadow-sm">
-                <div class="card-body text-center">
-                    <h1 class="display-4 fw-bold">{{ totalMotos }}</h1>
-                    <p class="mb-0"><i class="fas fa-motorcycle me-1"></i> Motos en Catálogo</p>
+            <div class="card bg-primary text-white dashboard-card shadow-sm">
+                <div class="card-body text-center p-4">
+                    <h2 class="fw-bold">{{ totalMotos }}</h2>
+                    <p class="mb-0 small"><i class="fas fa-motorcycle"></i> Motos</p>
                 </div>
             </div>
         </div>
-
-        {# Tarjeta de Valoraciones #}
         <div class="col-md-3">
-            <div class="card bg-success text-white mb-4 shadow-sm">
-                <div class="card-body text-center">
-                    <h1 class="display-4 fw-bold">{{ totalValoraciones }}</h1>
-                    <p class="mb-0"><i class="fas fa-star me-1"></i> Valoraciones Totales</p>
+            <div class="card bg-success text-white dashboard-card shadow-sm">
+                <div class="card-body text-center p-4">
+                    <h2 class="fw-bold">{{ totalValoraciones }}</h2>
+                    <p class="mb-0 small"><i class="fas fa-star"></i> Valoraciones</p>
                 </div>
             </div>
         </div>
-
-        {# Tarjeta de Categorías #}
         <div class="col-md-3">
-            <div class="card bg-info text-white mb-4 shadow-sm">
-                <div class="card-body text-center">
-                    <h1 class="display-4 fw-bold">{{ totalCategorias }}</h1>
-                    <p class="mb-0"><i class="fas fa-tags me-1"></i> Categorías Creadas</p>
+            <div class="card bg-info text-white dashboard-card shadow-sm">
+                <div class="card-body text-center p-4">
+                    <h2 class="fw-bold">{{ totalCategorias }}</h2>
+                    <p class="mb-0 small"><i class="fas fa-tags"></i> Categorías</p>
                 </div>
             </div>
         </div>
-
-        {# NUEVA: Tarjeta de Usuarios #}
         <div class="col-md-3">
-            <div class="card bg-warning text-dark mb-4 shadow-sm">
-                <div class="card-body text-center">
-                    <h1 class="display-4 fw-bold">{{ totalUsuarios }}</h1>
-                    <p class="mb-0"><i class="fas fa-users me-1"></i> Usuarios Registrados</p>
+            <div class="card bg-warning text-dark dashboard-card shadow-sm">
+                <div class="card-body text-center p-4">
+                    <h2 class="fw-bold">{{ totalUsuarios }}</h2>
+                    <p class="mb-0 small"><i class="fas fa-users"></i> Usuarios</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="alert alert-light border shadow-sm">
-        <i class="fa fa-info-circle text-info"></i> Bienvenido al panel de administración. Desde aquí puedes supervisar el estado global de la plataforma <strong>BMW Motorrad</strong>.
+    <div class="row g-4">
+        {# Top 5 General #}
+        <div class="col-md-4">
+            <div class="card stat-bg-dark h-100 shadow">
+                <div class="card-header border-secondary bg-transparent py-3">
+                    <h5 class="card-title m-0 text-warning fw-bold"><i class="fas fa-medal me-2"></i>Top 5 General (Votos)</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for item in topMotos %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span><span class="text-muted me-2">#{{ loop.index }}</span> {{ item.moto.modelo }}</span>
+                                <span class="badge bg-warning text-dark">{{ item.media|number_format(1) }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        {# Consenso Tier List (Rankings) #}
+        <div class="col-md-8">
+            <div class="card stat-bg-dark h-100 shadow tier-list-container">
+                <div class="card-header border-info bg-transparent py-3">
+                    <h5 class="card-title m-0 text-info fw-bold"><i class="fas fa-layer-group me-2"></i>Consenso Tier List (Rankings)</h5>
+                </div>
+                <div class="card-body">
+                    <select id="categoriaSelector" class="form-select form-select-custom mb-4 py-2">
+                        <option value="">-- Ver Medias por Categoría --</option>
+                        {% for cat in categorias %}
+                            <option value="{{ cat.nombre }}">{{ cat.nombre }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <div id="tierListContent">
+                        <div class="p-4 text-center border border-warning border-dashed rounded" style="border-style: dashed !important; background: rgba(255,193,7,0.05);">
+                            <p class="text-warning mb-0">
+                                <i class="fas fa-info-circle me-2"></i> Selecciona una categoría arriba para ver las medias de los rankings.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <div class="mt-4">
+        <a href="{{ path('admin_importar_motos') }}" class="btn btn-outline-info">
+            <i class="fas fa-sync-alt me-1"></i> Forzar Sincronización API BMW
+        </a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const selector = document.getElementById('categoriaSelector');
+            const content = document.getElementById('tierListContent');
+            const datosMotos = {{ todasLasMotos|json_encode|raw }};
+
+            selector.addEventListener('change', function() {
+                const categoria = this.value;
+                if (!categoria) {
+                    content.innerHTML = `
+                        <div class="p-4 text-center border border-warning border-dashed rounded" style="border-style: dashed !important; background: rgba(255,193,7,0.05);">
+                            <p class="text-warning mb-0"><i class="fas fa-info-circle me-2"></i> Selecciona una categoría.</p>
+                        </div>`;
+                    return;
+                }
+
+                // Filtrar y ordenar: En rankings, 1.00 es el mejor (S), 4.00 es el peor (C)
+                const filtradas = datosMotos
+                    .filter(m => m.categoriaNombre === categoria)
+                    .sort((a, b) => a.media - b.media);
+
+                if (filtradas.length === 0) {
+                    content.innerHTML = '<p class="text-muted text-center p-4">No hay datos de rankings para esta categoría.</p>';
+                    return;
+                }
+
+                let html = '<ul class="list-group list-group-flush">';
+                filtradas.forEach(m => {
+                    html += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom border-secondary">
+                            <span class="text-white">${m.modelo}</span>
+                            <span class="fw-bold" style="color: #0dcaf0; font-size: 1.1rem;">
+                                ${parseFloat(m.media).toFixed(2)}
+                            </span>
+                        </li>`;
+                });
+                html += '</ul>';
+
+                content.innerHTML = html;
+            });
+        });
+    </script>
 {% endblock %}

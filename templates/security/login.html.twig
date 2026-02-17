@@ -1,113 +1,77 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Iniciar Sesión{% endblock %}
+{% block title %}Acceso BMW Motos{% endblock %}
 
 {% block stylesheets %}
     <style>
-        .login-container {
-            max-width: 450px;
-            margin: 50px auto;
-            padding: 30px;
-            background-color: #f9f9f9;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        .login-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 70vh;
         }
-
-        h1 {
+        .login-card {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             color: #333;
-            text-align: center;
-            margin-bottom: 25px;
         }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #555;
-        }
-
-        input[type="email"], input[type="password"] {
+        .login-card h2 { text-align: center; margin-bottom: 30px; font-weight: bold; color: #1a1d21; }
+        .login-card label { display: block; color: #555; margin-bottom: 8px; font-weight: bold; }
+        .login-card input {
             width: 100%;
             padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            box-sizing: border-box;
-        }
-
-        .btn-login {
-            width: 100%;
-            background-color: #007bff;
-            color: white;
-            padding: 14px;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .btn-login:hover {
-            background-color: #0056b3;
-        }
-
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 10px;
-            border-radius: 5px;
             margin-bottom: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            color: #000 !important;
+            background-color: #fff !important;
         }
-
-        .footer-link {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 14px;
-        }
-
-        .footer-link a {
-            color: #007bff;
-            text-decoration: none;
+        .login-card button {
+            width: 100%;
+            padding: 14px;
+            background-color: #00aeef;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
         }
     </style>
 {% endblock %}
 
 {% block body %}
-    <div class="login-container">
-        <form method="post">
-            {% if error %}
-                <div class="alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
-            {% endif %}
+    <div class="login-wrapper">
+        <div class="login-card">
+            <h2>Iniciar Sesión</h2>
 
-            {% if app.user %}
-                <div class="form-group">
-                    Ya estás identificado como {{ app.user.userIdentifier }}, <a href="{{ path('app_logout') }}">Salir</a>
-                </div>
-            {% endif %}
+            <form method="post">
+                {% if error %}
+                    <div class="alert alert-danger p-2 mb-3" style="font-size: 14px;">
+                        {{ error.messageKey|trans(error.messageData, 'security') }}
+                    </div>
+                {% endif %}
 
-            <h1>Iniciar Sesión</h1>
-
-            <div class="form-group">
                 <label for="inputEmail">Email</label>
-                <input type="email" value="{{ last_username }}" name="email" id="inputEmail" class="form-control" autocomplete="email" required autofocus>
-            </div>
+                <input type="email" id="inputEmail" name="email" value="{{ last_username }}" required autofocus>
 
-            <div class="form-group">
                 <label for="inputPassword">Contraseña</label>
-                <input type="password" name="password" id="inputPassword" class="form-control" autocomplete="current-password" required>
-            </div>
+                <input type="password" id="inputPassword" name="password" required>
 
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
-            <button class="btn-login" type="submit">Entrar</button>
+                <button type="submit">ACCEDER</button>
 
-            <div class="footer-link">
-                ¿No tienes cuenta? <a href="{{ path('app_register') }}">Regístrate aquí</a>
-            </div>
-        </form>
+                <div class="text-center mt-4">
+                    <small class="text-muted">¿No tienes cuenta? <a href="{{ path('app_register') }}" class="text-info text-decoration-none fw-bold">Regístrate</a></small>
+                </div>
+            </form>
+        </div>
     </div>
 {% endblock %}

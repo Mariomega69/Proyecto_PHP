@@ -22,14 +22,17 @@ security:
                 # Si quieres que al salir vuelva a pedir login, puedes ponerlo aquí
                 target: app_login
 
+            entry_point: App\Security\LoginFormAuthenticator
+
             remember_me:
                 secret: '%kernel.secret%'
                 lifetime: 604800
                 path: /
 
     access_control:
-        # 0. PERMITIR ACCESO PÚBLICO AL LOGIN (Vital para no bloquear la web)
-        - { path: ^/login$, roles: PUBLIC_ACCESS }
+        # Estas rutas deben ser accesibles para todos (anónimos)
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }
 
         # 1. PROTECCIÓN GLOBAL: Cualquier ruta (/) requiere estar logueado
         # Esta es la línea que hace que al abrir el enlace te pida login
