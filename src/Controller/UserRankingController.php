@@ -22,11 +22,22 @@ class UserRankingController extends AbstractController
         $categoria = $em->getRepository(Categoria::class)->find($id);
         if (!$categoria) throw $this->createNotFoundException();
 
+        $usuario = $this->getUser();
+
+        // Si ya existe, redirigimos a editar
+        $rankingExistente = $em->getRepository(Ranking::class)->findOneBy([
+            'usuario' => $usuario,
+            'categoria' => $categoria
+        ]);
+
+        if ($rankingExistente) {
+            return $this->redirectToRoute('app_ranking_editar', ['id' => $rankingExistente->getId()]);
+        }
+
         $ranking = new Ranking();
-        $ranking->setUsuario($this->getUser());
+        $ranking->setUsuario($usuario);
         $ranking->setCategoria($categoria);
         $ranking->setNombre('Ranking ' . $categoria->getNombre());
-        $ranking->setFecha(new \DateTime());
 
         foreach ($categoria->getMotos() as $moto) {
             $item = new RankingItem();
@@ -56,6 +67,7 @@ class UserRankingController extends AbstractController
     public function editar(int $id, Request $request, EntityManagerInterface $em): Response
     {
         $ranking = $em->getRepository(Ranking::class)->find($id);
+
         if (!$ranking || $ranking->getUsuario() !== $this->getUser()) {
             throw $this->createAccessDeniedException();
         }

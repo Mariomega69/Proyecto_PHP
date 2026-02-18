@@ -7,7 +7,7 @@ use App\Repository\MotoRepository;
 use App\Repository\RankingRepository;
 use App\Repository\ValoracionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request; // Importante añadir esto
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -17,7 +17,7 @@ class UserController extends AbstractController
     #[Route('/mi-cuenta', name: 'app_user_dashboard')]
     #[IsGranted('ROLE_USER')]
     public function index(
-        Request $request, // Inyectamos el Request para leer el selector
+        Request $request,
         ValoracionRepository $valRepo,
         MotoRepository $motoRepo,
         CategoriaRepository $catRepo,
@@ -26,38 +26,31 @@ class UserController extends AbstractController
         $user = $this->getUser();
         $categorias = $catRepo->findAll();
 
-        // 1. Capturamos la categoría elegida en el selector de la comunidad
+        // 1. Mapear rankings existentes del usuario para cambiar botones CREAR/EDITAR
+        $rankingsUser = $rankRepo->findBy(['usuario' => $user]);
+        $mapaRankings = [];
+        foreach ($rankingsUser as $r) {
+            $mapaRankings[$r->getCategoria()->getId()] = $r->getId();
+        }
+
+        // 2. Consenso Tier List (Media de la comunidad)
         $idCategoriaSeleccionada = $request->query->get('id_categoria_ranking');
         $rankingPosicionesMedia = [];
 
         if ($idCategoriaSeleccionada) {
-            // Usamos la nueva función que calcula la media de los niveles S, A, B, C
             $rankingPosicionesMedia = $motoRepo->findMediaPosicionesPorCategoria((int)$idCategoriaSeleccionada);
-        }
-
-        $estadisticasGlobales = [
-            'total_motos' => $motoRepo->count([]),
-            'total_valoraciones' => $valRepo->count([]),
-        ];
-
-        // Top 5 basado en estrellas (valoraciones directas)
-        $topMotos = $motoRepo->findTopVotadas(5);
-        $mediasCategorias = $motoRepo->findMediasPorCategoria();
-
-        $topsPorCategoria = [];
-        foreach ($categorias as $cat) {
-            $topsPorCategoria[$cat->getNombre()] = $motoRepo->findTopByCategoria($cat->getId(), 3);
         }
 
         return $this->render('user/index.html.twig', [
             'user' => $user,
-            'misRankings' => $rankRepo->findBy(['usuario' => $user]),
+            'misRankings' => $rankingsUser,
+            'mapaRankings' => $mapaRankings, // Nueva variable
             'categorias' => $categorias,
-            'stats' => $estadisticasGlobales,
-            'topMotos' => $topMotos,
-            'mediasCategorias' => $mediasCategorias,
-            'topsPorCategoria' => $topsPorCategoria,
-            // Nuevas variables para el ranking de posiciones media
+            'stats' => [
+                'total_motos' => $motoRepo->count([]),
+                'total_valoraciones' => $valRepo->count([]),
+            ],
+            'topMotos' => $motoRepo->findTopVotadas(5),
             'rankingPosicionesMedia' => $rankingPosicionesMedia,
             'idCatActual' => $idCategoriaSeleccionada
         ]);
